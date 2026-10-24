@@ -1,0 +1,10 @@
+[[TS-1.1]]
+=== TS-1.1 Greeter command
+
+Implements <<FR-1.1>>.
+
+* Command `__PROJECT__ [--name NAME]`, an executable jar with the main class `app.__PACKAGE__.Main`;
+  `Main.run(args, out, err)` prints the greeting and returns the exit code (2 for a usage
+  error).
+* `Greet.greet(name)`: the stripped name, or "world" for a missing or blank one, as
+  `Hello, <name>!`.

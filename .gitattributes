@@ -1,0 +1,3 @@
+# Windows scripts of the build wrappers need CRLF line endings
+*.bat text eol=crlf
+*.cmd text eol=crlf

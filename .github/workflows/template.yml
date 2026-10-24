@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [node, python, go]
+        language: [node, python, go, java-maven, java-gradle]
         testing: [plain, bdt]
     runs-on: ubuntu-latest
     steps:
@@ -40,12 +40,21 @@ jobs:
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-java@v4
+        if: startsWith(matrix.language, 'java-')
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+        if: matrix.language == 'java-gradle'
       - name: Install
         run: |
           case "${{ matrix.language }}" in
             node) npm install && npx playwright install --with-deps chromium ;;
             python) uv sync ;;
             go) go mod download ;;
+            java-maven) ./mvnw -B -q dependency:resolve ;;
+            java-gradle) ./gradlew -q dependencies >/dev/null ;;
           esac
       - name: Quality gate
         run: |
@@ -53,6 +62,8 @@ jobs:
             node) npm run check ;;
             python) uv run poe check ;;
             go) task check ;;
+            java-maven) ./mvnw -B verify ;;
+            java-gradle) ./gradlew check ;;
           esac
       - name: Blackbox tests
         run: |
@@ -63,6 +74,10 @@ jobs:
             python-bdt) uv run poe bdt ;;
             go-plain) task blackbox ;;
             go-bdt) task bdt ;;
+            java-maven-plain) ./mvnw -B verify -P e2e ;;
+            java-maven-bdt) ./mvnw -B verify -P bdt ;;
+            java-gradle-plain) ./gradlew e2eTest ;;
+            java-gradle-bdt) ./gradlew bdt ;;
           esac
       - name: BDT reports
         if: matrix.testing == 'bdt'

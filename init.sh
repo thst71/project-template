@@ -2,8 +2,9 @@
 # Turns this template into a project: copies the chosen variant into the root, fills in the
 # project name, writes AGENTS.md and removes the template. Run it once, in a fresh copy.
 #
-# Usage: ./init.sh <node|python|go> <bdt|plain> <project-name>
-#   node | python | go  the language of the hello world
+# Usage: ./init.sh <node|python|go|java-maven|java-gradle> <bdt|plain> <project-name>
+#   node | python | go | java-maven | java-gradle
+#                  the language (and for Java the build tool) of the hello world
 #   bdt            requirements-based blackbox tests: acceptance scenarios in feature files,
 #                  test and traceability reports
 #   plain          blackbox tests as the final step, without scenarios
@@ -14,32 +15,47 @@ fail() {
 	exit 1
 }
 
-[ $# -eq 3 ] || fail "usage: ./init.sh <node|python|go> <bdt|plain> <project-name>"
+[ $# -eq 3 ] || fail "usage: ./init.sh <node|python|go|java-maven|java-gradle> <bdt|plain> <project-name>"
 language=$1
 testing=$2
 name=$3
-case $language in node | python | go) ;; *) fail "language must be node, python or go, not $language" ;; esac
+case $language in
+node | python | go) base= ;;
+java-maven | java-gradle) base=java ;;
+*) fail "language must be node, python, go, java-maven or java-gradle, not $language" ;;
+esac
 case $testing in bdt | plain) ;; *) fail "testing must be bdt or plain, not $testing" ;; esac
 case $name in
 '' | -* | *[!a-z0-9-]*) fail "project name: lower case letters, digits and -, not starting with -" ;;
 esac
+case $base$name in
+java[0-9]*) fail "project name: a Java package cannot start with a digit" ;;
+esac
 
 # Work in the template root only: everything below refers to its literal paths.
 cd "$(dirname "$0")"
-[ -f init.sh ] && [ -d template/common ] && [ -d .agents/skills ] ||
+if [ ! -f init.sh ] || [ ! -d template/common ] || [ ! -d .agents/skills ]; then
 	fail "run init.sh in the root of an unused copy of the template"
+fi
 
-package=$(printf '%s' "$name" | tr - _)
+# The package of the code: python my_project; Java app.myproject (Google Java style allows no _)
+if [ "$base" = java ]; then
+	package=$(printf '%s' "$name" | tr -d -)
+else
+	package=$(printf '%s' "$name" | tr - _)
+fi
 skills=$(tr -d ' \r\n' <.agents/skills/VERSION)
 
-for overlay in common "$language" "$testing" "$language-$testing"; do
+for overlay in common $base "$language" "$testing" "$language-$testing"; do
 	if [ -d "template/$overlay" ]; then
 		cp -R "template/$overlay/." .
 	fi
 done
-if [ -d src/__PACKAGE__ ]; then
-	mv src/__PACKAGE__ "src/$package"
-fi
+# Folders named after the package (src/__PACKAGE__, src/main/java/__PACKAGE__, …), deepest first
+find . -depth -type d -name __PACKAGE__ ! -path './.git/*' ! -path './template/*' |
+	while IFS= read -r folder; do
+		mv "$folder" "${folder%/__PACKAGE__}/$package"
+	done
 
 # AGENTS.md: the common text with the sections of the variant
 awk -v components="template/fragments/$language.md" -v testing="template/fragments/$language-$testing.md" '
@@ -78,6 +94,12 @@ python)
 go)
 	echo "  go mod download   (Task and golangci-lint must be installed)"
 	echo "  task check"
+	;;
+java-maven)
+	echo "  ./mvnw -B verify   (JDK 21 or later)"
+	;;
+java-gradle)
+	echo "  ./gradlew check   (JDK 21 or later)"
 	;;
 esac
 if [ "$testing" = bdt ]; then

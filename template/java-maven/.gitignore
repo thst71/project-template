@@ -1,0 +1,6 @@
+target
+build
+test-report.adoc
+traceability-report.adoc
+dist-docs
+dist

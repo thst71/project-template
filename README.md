@@ -3,13 +3,15 @@
 A hello-world project to start new projects from, set up with the
 [agent-skills](https://github.com/thst71/agent-skills) library: modular AsciiDoc specification,
 coding-agent workflows in `AGENTS.md`, quality gate, signed-tag releases with rendered
-documentation. Six variants:
+documentation. Ten variants:
 
 | | `plain` | `bdt` |
 |---|---|---|
 | `node` | Vite page, Vitest, Playwright blackbox tests | … plus acceptance scenarios with playwright-bdd |
 | `python` | uv command line, pytest, blackbox tests as a process | … plus acceptance scenarios with pytest-bdd |
 | `go` | command line with Task, `go test`, blackbox tests behind the build tag `blackbox` | … plus acceptance scenarios with godog |
+| `java-maven` | command line jar with the Maven wrapper, JUnit, blackbox tests in the profile `e2e` | … plus acceptance scenarios with Cucumber-JVM |
+| `java-gradle` | command line jar with the Gradle wrapper, JUnit, blackbox tests in the suite `e2eTest` | … plus acceptance scenarios with Cucumber-JVM |
 
 - `plain`: blackbox tests are the final step of the test pyramid.
 - `bdt`: requirements-based blackbox testing. Acceptance scenarios in
@@ -19,10 +21,10 @@ documentation. Six variants:
 ## Start a Project
 
 1. On GitHub, "Use this template", then clone the new repository.
-2. Choose the variant and the name (lower case, digits, `-`):
+2. Choose the variant and the name (lower case, digits, `-`; for Java not starting with a digit):
 
    ```sh
-   ./init.sh node bdt my-project     # or: node plain, python bdt|plain, go bdt|plain
+   ./init.sh node bdt my-project     # or: node plain, python|go|java-maven|java-gradle bdt|plain
    ```
 
    `init.sh` copies the variant into the root, fills in the name, writes `AGENTS.md` and removes
@@ -33,13 +35,15 @@ documentation. Six variants:
    npm install && npx playwright install chromium && npm run check     # node
    uv sync && uv run poe check                                         # python
    go mod download && task check                                       # go (Task, golangci-lint)
+   ./mvnw -B verify                                                    # java-maven
+   ./gradlew check                                                     # java-gradle
    ```
 
 4. Commit: `git add -A && git commit -m "chore: initialise my-project from project-template"`.
 5. Releases: once per repository, run `.agents/skills/release/setup-repository.sh` as the
    [release](https://github.com/thst71/agent-skills/blob/main/release/SKILL.md) skill describes.
 
-Prerequisites: Node.js (LTS), uv, or Go with Task and golangci-lint; for releases and library updates an SSH signing key and
+Prerequisites: Node.js (LTS), uv, Go with Task and golangci-lint, or a JDK 21 or later; for releases and library updates an SSH signing key and
 `~/.agents/allowed_signers` (see the agent-skills README).
 
 ## Developing the Template
