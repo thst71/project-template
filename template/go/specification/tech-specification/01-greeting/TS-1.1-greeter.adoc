@@ -1,0 +1,10 @@
+[[TS-1.1]]
+=== TS-1.1 Greeter command
+
+Implements <<FR-1.1>>.
+
+* Command `__PROJECT__ [-name NAME]` in `main.go` (package `main` at the module root, so that
+  the binary carries the project's name); `run(args, stdout, stderr)` parses the flags with
+  `flag.ContinueOnError`, prints the greeting and returns the exit code (2 for a usage error).
+* `greet.Greet(name)` in `internal/greet`: the trimmed name, or "world" for a blank one, as
+  `Hello, <name>!`.

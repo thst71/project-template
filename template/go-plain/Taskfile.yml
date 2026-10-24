@@ -1,0 +1,30 @@
+version: '3'
+
+tasks:
+  typecheck:
+    cmds:
+      - go build ./...
+      - go vet -tags=blackbox ./...
+  lint:
+    cmds:
+      - golangci-lint run --build-tags=blackbox
+  format-check:
+    cmds:
+      - test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+  test:
+    cmds:
+      - go test -race -cover ./...
+  blackbox:
+    desc: The built command as a separate process.
+    cmds:
+      - go test -tags=blackbox -count=1 ./blackbox/...
+  validate-specs:
+    cmds:
+      - .agents/skills/spec-system/bin/validate-specs
+  check:
+    cmds:
+      - task: typecheck
+      - task: lint
+      - task: format-check
+      - task: test
+      - task: validate-specs

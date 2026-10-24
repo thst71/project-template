@@ -1,0 +1,97 @@
+# Release workflow, from the agent-skills release skill template (release/release.yml).
+name: release
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    environment: release
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
+      prerelease: ${{ steps.tag.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: tag
+        uses: thst71/release-actions/verify-release-tag@7e4daefa8a915c28fd06bcd6f6a5bc77b1f27217 # v0.2.0
+        with:
+          allowed-signers: ${{ secrets.RELEASE_ALLOWED_SIGNERS }}
+
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          install-only: true
+      - uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: task check
+      - run: task bdt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: ignore
+      # BDT: the results of the bdt task, for the reports of the docs job
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bdt-results
+          path: build/bdt/cucumber.json
+          if-no-files-found: ignore
+
+  docs:
+    needs: [verify, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # BDT: test and traceability report from the results, rendered with the other masters
+      - uses: actions/download-artifact@v4
+        if: hashFiles('specification/acceptance/**/*.feature') != ''
+        with:
+          name: bdt-results
+          path: build/bdt
+      - name: BDT reports
+        if: hashFiles('specification/acceptance/**/*.feature') != ''
+        run: |
+          .agents/skills/spec-system/bin/validate-specs -test-report build/bdt/cucumber.json
+          .agents/skills/spec-system/bin/validate-specs -trace-report -results build/bdt/cucumber.json
+      - uses: thst71/release-actions/render-docs@7e4daefa8a915c28fd06bcd6f6a5bc77b1f27217 # v0.2.0
+        with:
+          version: ${{ needs.verify.outputs.version }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docs
+          path: |
+            dist-docs/html/
+            dist-docs/*.zip
+
+  publish:
+    needs: [verify, build, docs]
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - uses: thst71/release-actions/publish-release@7e4daefa8a915c28fd06bcd6f6a5bc77b1f27217 # v0.2.0
+        with:
+          version: ${{ needs.verify.outputs.version }}
+          prerelease: ${{ needs.verify.outputs.prerelease }}
+          assets: |
+            artifacts/docs/html/*.html
+            artifacts/docs/*.zip

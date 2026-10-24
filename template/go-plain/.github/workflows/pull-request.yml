@@ -1,0 +1,27 @@
+# Pull request workflow, from the agent-skills release skill template (release/pull-request.yml).
+# Runs for every commit of a pull request, not for branch pushes without one.
+name: pull-request
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          install-only: true
+      - uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: task check
+      - run: task blackbox
