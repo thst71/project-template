@@ -1,0 +1,23 @@
+[[US-1.1]]
+=== US-1.1 Greet
+
+Effort:: 1 h +
+Traces to:: <<TS-1.1>>, <<FR-1.1>>
+
+As a user, I want to be greeted by my name, so that I feel welcome.
+
+.Acceptance criteria
+. Without a name, the greeter shows "Hello, world!".
+. With the name "Alice", it shows "Hello, Alice!"; blanks around the name are ignored.
+
+.Technical tasks
+. `greet(name)`.
+. The user interface around it (TS-1.1).
+. The steps of the acceptance scenarios.
+
+.Test criteria
+* Unit test: `greet` with a name, a name with blanks, an empty and a blank name.
+* Component test: the user interface shows the greeting for "Alice"; it fails without its
+  elements, where it has any.
+* Integration test: none; there is no persistence and no second module.
+* Blackbox test: the acceptance scenarios <<AT-1.1>> and <<AT-1.2>> of <<FR-1.1>>.

@@ -1,0 +1,12 @@
+[[FR-1.1]]
+=== FR-1.1 Greeting
+
+The greeter shall greet a given name with "Hello, <name>!" and the world when no name is given.
+
+.Acceptance criteria
+. Without a name, the greeting is "Hello, world!".
+. With the name "Alice", the greeting is "Hello, Alice!".
+. Blanks around the name are ignored; a blank name counts as no name.
+
+Stakeholder need:: SPEC.md §1.1 +
+Effort:: 1 h

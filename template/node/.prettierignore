@@ -1,0 +1,9 @@
+dist
+coverage
+playwright-report
+test-results
+.features-gen
+.agents
+specification
+*.adoc
+*.md

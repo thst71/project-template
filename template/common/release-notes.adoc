@@ -1,0 +1,4 @@
+= __PROJECT__ – Release Notes
+:toc: left
+
+include::specification/release-notes/0.1.0.adoc[]

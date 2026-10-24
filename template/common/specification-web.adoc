@@ -1,0 +1,9 @@
+= __PROJECT__ – Requirements Specification
+:toc: left
+:toclevels: 3
+:sectnums:
+
+Functional and non-functional requirements of __PROJECT__, derived from `SPEC.md` (the
+stakeholder input).
+
+include::specification/requirements/01-greeting/index.adoc[]

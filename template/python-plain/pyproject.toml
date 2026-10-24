@@ -1,0 +1,58 @@
+[project]
+name = "__PROJECT__"
+version = "0.1.0"
+description = "Greets the world or a name."
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+__PROJECT__ = "__PACKAGE__.cli:main"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.0",
+    "poethepoet>=0.49.0",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.2",
+]
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.poe.tasks]
+lint = "ruff check ."
+format-check = "ruff format --check ."
+typecheck = "mypy"
+test = "pytest -m 'not blackbox'"
+blackbox = "pytest -m blackbox --no-cov"
+validate-specs = ".agents/skills/spec-system/bin/validate-specs"
+check = ["lint", "format-check", "typecheck", "test", "validate-specs"]
+version = "uv version --short"
+dist = "uv build"
+
+[tool.pytest.ini_options]
+addopts = ["--strict-markers", "--cov=__PACKAGE__", "--cov-report=term-missing", "--cov-fail-under=90"]
+testpaths = ["tests"]
+markers = [
+  "unit: single functions",
+  "component: one module, collaborators faked",
+  "integration: several modules with files or services",
+  "blackbox: the command as a separate process",
+]
+
+[tool.coverage.run]
+# Runs only as a separate process (blackbox level)
+omit = ["src/*/__main__.py"]
+
+[tool.ruff]
+line-length = 120
+extend-exclude = [".agents"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "T20"]
+
+[tool.mypy]
+strict = true
+files = ["src", "tests"]

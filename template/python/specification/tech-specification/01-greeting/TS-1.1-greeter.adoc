@@ -1,0 +1,9 @@
+[[TS-1.1]]
+=== TS-1.1 Greeter command
+
+Implements <<FR-1.1>>.
+
+* Command `__PROJECT__ [--name NAME]`, entry point `main(argv)` in `src/__PACKAGE__/cli.py`
+  (argparse), printing the greeting and exiting with 0.
+* `greet(name)` in `src/__PACKAGE__/greet.py`: the trimmed name, or "world" for a blank or missing
+  one, as `Hello, <name>!`.

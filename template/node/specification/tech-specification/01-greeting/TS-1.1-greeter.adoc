@@ -1,0 +1,12 @@
+[[TS-1.1]]
+=== TS-1.1 Greeter page
+
+Implements <<FR-1.1>>.
+
+* A single page (`index.html`, Vite, TypeScript) with the heading `#greeting` and a form with the
+  field "Name" and the button "Greet".
+* `greet(name)` in `src/greet.ts`: the trimmed name, or "world" for a blank one, as
+  `Hello, <name>!`.
+* `mountApp(root)` in `src/app.ts` shows `greet` of the field in the heading on submit; it fails
+  when the form is missing.
+* The page starts with "Hello, world!".

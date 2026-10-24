@@ -1,0 +1,56 @@
+# Initialises every variant of the template and runs it like a project would. init.sh removes
+# this workflow from the projects it creates.
+name: template
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  variant:
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [node, python]
+        testing: [plain, bdt]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./init.sh ${{ matrix.language }} ${{ matrix.testing }} hello-${{ matrix.language }}
+      - uses: actions/setup-node@v5
+        if: matrix.language == 'node'
+        with:
+          node-version: lts/*
+      - uses: astral-sh/setup-uv@v6
+        if: matrix.language == 'python'
+      - name: Install
+        run: |
+          if [ "${{ matrix.language }}" = node ]; then
+            npm install
+            npx playwright install --with-deps chromium
+          else
+            uv sync
+          fi
+      - name: Quality gate
+        run: |
+          if [ "${{ matrix.language }}" = node ]; then npm run check; else uv run poe check; fi
+      - name: Blackbox tests
+        run: |
+          case "${{ matrix.language }}-${{ matrix.testing }}" in
+            node-plain) npm run test:blackbox ;;
+            node-bdt) npm run bdt ;;
+            python-plain) uv run poe blackbox ;;
+            python-bdt) uv run poe bdt ;;
+          esac
+      - name: BDT reports
+        if: matrix.testing == 'bdt'
+        run: |
+          .agents/skills/spec-system/bin/validate-specs -test-report build/bdt/cucumber.json
+          .agents/skills/spec-system/bin/validate-specs -trace-report -results build/bdt/cucumber.json
+      - uses: thst71/release-actions/render-docs@7e4daefa8a915c28fd06bcd6f6a5bc77b1f27217 # v0.2.0
+        with:
+          version: template-${{ github.run_number }}

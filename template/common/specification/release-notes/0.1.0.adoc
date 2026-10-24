@@ -1,0 +1,7 @@
+== Release v0.1.0 (unreleased)
+
+Built with agent-skills v__AGENT_SKILLS__.
+
+=== Features
+
+* Greets the world, or the name it is given (<<US-1.1>>, <<FR-1.1>>).
