@@ -1,0 +1,31 @@
+version: '3'
+
+tasks:
+  typecheck:
+    cmds:
+      - go build ./...
+      - go vet -tags=bdt ./...
+  lint:
+    cmds:
+      - golangci-lint run --build-tags=bdt
+  format-check:
+    cmds:
+      - test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+  test:
+    cmds:
+      - go test -race -cover ./...
+  bdt:
+    desc: The acceptance scenarios against the built command; Cucumber JSON in build/bdt/.
+    cmds:
+      - mkdir -p build/bdt
+      - go test -tags=bdt -count=1 ./bdt/...
+  validate-specs:
+    cmds:
+      - .agents/skills/spec-system/bin/validate-specs
+  check:
+    cmds:
+      - task: typecheck
+      - task: lint
+      - task: format-check
+      - task: test
+      - task: validate-specs

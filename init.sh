@@ -2,8 +2,8 @@
 # Turns this template into a project: copies the chosen variant into the root, fills in the
 # project name, writes AGENTS.md and removes the template. Run it once, in a fresh copy.
 #
-# Usage: ./init.sh <node|python> <bdt|plain> <project-name>
-#   node | python  the language of the hello world
+# Usage: ./init.sh <node|python|go> <bdt|plain> <project-name>
+#   node | python | go  the language of the hello world
 #   bdt            requirements-based blackbox tests: acceptance scenarios in feature files,
 #                  test and traceability reports
 #   plain          blackbox tests as the final step, without scenarios
@@ -14,11 +14,11 @@ fail() {
 	exit 1
 }
 
-[ $# -eq 3 ] || fail "usage: ./init.sh <node|python> <bdt|plain> <project-name>"
+[ $# -eq 3 ] || fail "usage: ./init.sh <node|python|go> <bdt|plain> <project-name>"
 language=$1
 testing=$2
 name=$3
-case $language in node | python) ;; *) fail "language must be node or python, not $language" ;; esac
+case $language in node | python | go) ;; *) fail "language must be node, python or go, not $language" ;; esac
 case $testing in bdt | plain) ;; *) fail "testing must be bdt or plain, not $testing" ;; esac
 case $name in
 '' | -* | *[!a-z0-9-]*) fail "project name: lower case letters, digits and -, not starting with -" ;;
@@ -66,13 +66,20 @@ rm -rf template
 rm -f init.sh .github/workflows/template.yml
 
 echo "initialised $name ($language, $testing); next steps:"
-if [ "$language" = node ]; then
+case $language in
+node)
 	echo "  npm install && npx playwright install chromium"
 	echo "  npm run check"
-else
+	;;
+python)
 	echo "  uv sync"
 	echo "  uv run poe check"
-fi
+	;;
+go)
+	echo "  go mod download   (Task and golangci-lint must be installed)"
+	echo "  task check"
+	;;
+esac
 if [ "$testing" = bdt ]; then
 	echo "  the acceptance scenarios: see AGENTS.md, Testing"
 fi

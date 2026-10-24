@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [node, python]
+        language: [node, python, go]
         testing: [plain, bdt]
     runs-on: ubuntu-latest
     steps:
@@ -27,17 +27,33 @@ jobs:
           node-version: lts/*
       - uses: astral-sh/setup-uv@v6
         if: matrix.language == 'python'
+      - uses: actions/setup-go@v5
+        if: matrix.language == 'go'
+        with:
+          go-version-file: go.mod
+      - uses: golangci/golangci-lint-action@v8
+        if: matrix.language == 'go'
+        with:
+          install-only: true
+      - uses: arduino/setup-task@v2
+        if: matrix.language == 'go'
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install
         run: |
-          if [ "${{ matrix.language }}" = node ]; then
-            npm install
-            npx playwright install --with-deps chromium
-          else
-            uv sync
-          fi
+          case "${{ matrix.language }}" in
+            node) npm install && npx playwright install --with-deps chromium ;;
+            python) uv sync ;;
+            go) go mod download ;;
+          esac
       - name: Quality gate
         run: |
-          if [ "${{ matrix.language }}" = node ]; then npm run check; else uv run poe check; fi
+          case "${{ matrix.language }}" in
+            node) npm run check ;;
+            python) uv run poe check ;;
+            go) task check ;;
+          esac
       - name: Blackbox tests
         run: |
           case "${{ matrix.language }}-${{ matrix.testing }}" in
@@ -45,6 +61,8 @@ jobs:
             node-bdt) npm run bdt ;;
             python-plain) uv run poe blackbox ;;
             python-bdt) uv run poe bdt ;;
+            go-plain) task blackbox ;;
+            go-bdt) task bdt ;;
           esac
       - name: BDT reports
         if: matrix.testing == 'bdt'
