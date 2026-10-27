@@ -1,11 +1,18 @@
 # Initialises every variant of the template and runs it like a project would. init.sh removes
-# this workflow from the projects it creates.
+# this workflow from the projects it creates. agent-skills calls it with a ref of the library to
+# run every variant with that library version before it is tagged.
 name: template
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_call:
+    inputs:
+      agent-skills-ref:
+        description: Commit of thst71/agent-skills that replaces the vendored library
+        type: string
+        required: true
 
 permissions:
   contents: read
@@ -19,7 +26,25 @@ jobs:
         testing: [plain, bdt]
     runs-on: ubuntu-latest
     steps:
+      # Called from agent-skills, the template's main; otherwise the event's commit
       - uses: actions/checkout@v4
+        with:
+          repository: thst71/project-template
+      - uses: actions/checkout@v4
+        if: inputs.agent-skills-ref
+        with:
+          repository: thst71/agent-skills
+          ref: ${{ inputs.agent-skills-ref }}
+          path: agent-skills
+      # As vendor.sh does with a tag: the library's files without export-ignore, and its VERSION
+      - name: Library under test
+        if: inputs.agent-skills-ref
+        run: |
+          rm -rf .agents/skills
+          mkdir .agents/skills
+          git -C agent-skills archive HEAD | tar -x -C .agents/skills
+          echo "0.0.0-$(git -C agent-skills rev-parse --short=12 HEAD)" >.agents/skills/VERSION
+          rm -rf agent-skills
       - run: ./init.sh ${{ matrix.language }} ${{ matrix.testing }} hello-${{ matrix.language }}
       - uses: actions/setup-node@v5
         if: matrix.language == 'node'
