@@ -17,13 +17,15 @@
 | `typecheck` | `compileJava` / `classes` |
 | `validate-specs` | `validateSpecs` (an `Exec` task running `.agents/skills/spec-system/bin/validate-specs`) |
 
+- Test durations: every test task writes the time of every test to `build/test-results/<task>/` (`TEST-*.xml`) and `build/reports/tests/<task>/` by default; do not switch the reports off.
+
 ## Test Pyramid Tooling
 
 | Level | Tooling | Run one level |
 |---|---|---|
-| Unit | JUnit 5 + Mockito | `./gradlew test` |
-| Component | JUnit 5 + Mockito, one class or package with collaborators mocked | `./gradlew test --tests '<Pattern>'` |
-| Integration | JUnit 5 + Testcontainers, source set `src/integrationTest` | `./gradlew integrationTest` |
+| Unit | JUnit Jupiter + Mockito | `./gradlew test` |
+| Component | JUnit Jupiter + Mockito, one class or package with collaborators mocked | `./gradlew test --tests '<Pattern>'` |
+| Integration | JUnit Jupiter + Testcontainers, source set `src/integrationTest` | `./gradlew integrationTest` |
 | Blackbox | REST Assured (API), Selenium/Playwright-Java (UI), source set `src/e2eTest` | `./gradlew e2eTest` |
 
 - `integrationTest` and `e2eTest` are JVM test suites (`testing { suites { register<JvmTestSuite>("e2eTest") { … } } }`), each with its source set and a test task of the same name; `check` does not run them, but compiles, lints and format-checks their sources.

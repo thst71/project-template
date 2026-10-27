@@ -26,7 +26,7 @@ build-backend = "uv_build"
 lint = "ruff check ."
 format-check = "ruff format --check ."
 typecheck = "mypy"
-test = "pytest -m 'not bdt'"
+test = "pytest -m 'not bdt' --junitxml=build/test/junit.xml --durations=10"
 bdt = { shell = "mkdir -p build/bdt && pytest -m bdt --no-cov --cucumberjson=build/bdt/cucumber.json" }
 validate-specs = ".agents/skills/spec-system/bin/validate-specs"
 check = ["lint", "format-check", "typecheck", "test", "validate-specs"]
