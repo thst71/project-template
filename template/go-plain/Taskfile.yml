@@ -13,7 +13,8 @@ tasks:
       - test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
   test:
     cmds:
-      - go test -race -cover ./...
+      - mkdir -p build/test
+      - go run gotest.tools/gotestsum@v1.13.0 --junitfile build/test/junit.xml -- ./... -race -cover
   blackbox:
     desc: The built command as a separate process.
     cmds:

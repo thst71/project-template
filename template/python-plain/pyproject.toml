@@ -25,7 +25,7 @@ build-backend = "uv_build"
 lint = "ruff check ."
 format-check = "ruff format --check ."
 typecheck = "mypy"
-test = "pytest -m 'not blackbox'"
+test = "pytest -m 'not blackbox' --junitxml=build/test/junit.xml --durations=10"
 blackbox = "pytest -m blackbox --no-cov"
 validate-specs = ".agents/skills/spec-system/bin/validate-specs"
 check = ["lint", "format-check", "typecheck", "test", "validate-specs"]

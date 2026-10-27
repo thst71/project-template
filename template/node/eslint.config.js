@@ -11,6 +11,7 @@ export default tseslint.config(
       "test-results",
       ".features-gen",
       ".agents",
+      "build",
     ],
   },
   js.configs.recommended,
